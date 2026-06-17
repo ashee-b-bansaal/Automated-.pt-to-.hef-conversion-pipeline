@@ -60,10 +60,12 @@ Install `ultralytics` only when exporting current YOLO models, or
 
 ## 2. Prepare the Hailo environment
 
-Download/install the matching Hailo Software Suite or Dataflow Compiler from the
-Hailo Developer Zone. Activate the environment and install the matching v2.x
-Model Zoo checkout. Do not use this repository to guess compiler package
-versions—use one coherent Hailo release.
+Download/install the matching Hailo Software Suite (including Dataflow Compiler
+and HailoRT) from the Hailo Developer Zone:
+https://hailo.ai/developer-zone/
+
+Install the matching Hailo Model Zoo v2.x checkout from the official releases:
+https://github.com/hailo-ai/hailo_model_zoo/releases
 
 Check the machine:
 
