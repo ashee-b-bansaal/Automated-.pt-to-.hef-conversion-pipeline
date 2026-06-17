@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hailo-edge-model-toolkit"
+version = "0.1.0"
+description = "Reproducible export, compilation, inventory, and deployment helpers for Hailo-8/Hailo-8L models"
+requires-python = ">=3.10"
+authors = [{name = "Ashee B Bansaal"}]
+license = {text = "MIT"}
+
+[project.scripts]
+hmct = "hailo_model_toolkit.cli:main"
+
+[tool.setuptools]
+packages = ["hailo_model_toolkit"]

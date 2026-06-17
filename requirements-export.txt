@@ -1,0 +1,13 @@
+# Install these in a SEPARATE model-export virtual environment.
+# Do not install them into the Hailo Dataflow Compiler environment.
+torch
+torchvision
+onnx==1.16.0
+pillow
+numpy<2
+
+# Optional, only for current Ultralytics YOLO export:
+# ultralytics
+
+# Optional, only for CLIP/OpenCLIP image encoder export:
+# open_clip_torch
