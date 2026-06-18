@@ -19,6 +19,16 @@ It supports four practical workflows:
 > Zoo master branch targets newer Hailo-10/Hailo-15 devices. The safest setup is
 > the Model Zoo and DFC shipped in the same Hailo Software Suite release.
 
+Suggested toolchain: 
+
+Hailo hardware:       Hailo-8 M.2
+Target arch:          hailo8
+Python:               3.10
+OS for compiling:     WSL Ubuntu 22.04/ Linux machine
+Dataflow Compiler:    3.33.1
+HailoRT:              4.23.0
+Hailo Model Zoo:      v2.18
+
 ## The most important rule
 
 Keep **two separate Python environments**:
@@ -66,6 +76,17 @@ https://hailo.ai/developer-zone/
 
 Install the matching Hailo Model Zoo v2.x checkout from the official releases:
 https://github.com/hailo-ai/hailo_model_zoo/releases
+
+Example (pin to v2.18.0):
+
+```bash
+git clone https://github.com/hailo-ai/hailo_model_zoo.git
+cd hailo_model_zoo
+git checkout v2.18.0
+```
+
+Use the exact Model Zoo tag that matches your installed Hailo Software Suite /
+DFC release notes.
 
 Check the machine:
 
