@@ -25,7 +25,14 @@ p.add_argument("--input-shape", nargs=4, type=int, metavar=("N", "C", "H", "W"))
 p.add_argument("--model-script", help="Optional .alls file")
 args = p.parse_args()
 
-from hailo_sdk_client import ClientRunner
+try:
+    from hailo_sdk_client import ClientRunner
+except Exception as exc:  # pragma: no cover - runtime environment dependent
+    raise SystemExit(
+        "Failed to import hailo_sdk_client. Activate the Hailo compiler environment "
+        "that contains Dataflow Compiler packages before running this script.\n"
+        f"Original error: {exc}"
+    ) from exc
 
 onnx = Path(args.onnx).resolve()
 calib_path = Path(args.calib_npy).resolve()
@@ -36,7 +43,18 @@ if not onnx.is_file():
 if not calib_path.is_file():
     raise SystemExit(f"Calibration array not found: {calib_path}")
 
-runner = ClientRunner(hw_arch=args.hw_arch)
+try:
+    runner = ClientRunner(hw_arch=args.hw_arch)
+except Exception as exc:  # pragma: no cover - runtime environment dependent
+    message = str(exc)
+    if "GLIBC_" in message and "HSim.so" in message:
+        raise SystemExit(
+            "Failed to initialize Hailo simulator due to host libc mismatch. "
+            "This Dataflow Compiler build requires a newer glibc than this host provides. "
+            "Use a newer compile host/container or a Hailo release compatible with this OS.\n"
+            f"Original error: {exc}"
+        ) from exc
+    raise SystemExit(f"Failed to initialize Hailo ClientRunner: {exc}") from exc
 kwargs = {}
 if args.start_nodes:
     kwargs["start_node_names"] = args.start_nodes

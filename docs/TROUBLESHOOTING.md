@@ -69,3 +69,88 @@ models. For long runs, use `tmux` and save logs with `tee`.
 For Hailo-8/Hailo-8L, use a Model Zoo **v2.x** version paired with DFC **v3.x**.
 The current master branch targets newer Hailo-10/Hailo-15 devices. Prefer the
 Model Zoo bundled with the exact Hailo Software Suite release.
+
+## `hmct` commands fail with "No such file or directory"
+
+`hmct` is in this repository root. Run commands from the toolkit directory:
+
+```bash
+cd /path/to/Automated-.pt-to-.hef-conversion-pipeline
+./hmct ...
+```
+
+If `source /model_export_env/bin/activate` fails, the leading `/` is usually
+wrong. Use `~/model_export_env/bin/activate` or an explicit absolute path.
+
+## `compile_direct_dfc.py`: `No module named hailo_sdk_client`
+
+This typically means the export environment is active during compile. Compile
+must run in the Hailo environment only.
+
+```bash
+deactivate 2>/dev/null || true
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate hailo310
+python -c "import hailo_sdk_client; print('OK')"
+```
+
+## `libhailort.so.4.23.0` cannot be opened
+
+`hailo_platform` found its Python extension, but the runtime shared library is
+not on the dynamic linker path.
+
+1. Locate runtime libs:
+
+```bash
+find "$CONDA_PREFIX" -type f \( -name "libhailort.so*" -o -name "*pyhailort*.so" \) -print
+```
+
+2. If `libhailort.so.*` exists, export its directory:
+
+```bash
+export LD_LIBRARY_PATH="/path/to/libhailort_dir:${LD_LIBRARY_PATH:-}"
+```
+
+3. If `libhailort.so.*` is missing entirely, install the matching HailoRT
+runtime package from the same Hailo Software Suite release.
+
+## `GLIBC_2.29 not found` for `HSim.so`
+
+This is an OS compatibility issue, not a Python package conflict. The DFC/HSim
+binary requires a newer glibc than the host provides.
+
+Check host libc:
+
+```bash
+ldd --version
+```
+
+If host glibc is older than required (for example 2.28 vs required 2.29), use:
+
+- a newer compile host/container, or
+- a Hailo release built for that OS/libc baseline.
+
+`pip`, `uv`, and `conda` cannot safely "upgrade system glibc" on a shared node.
+
+## Checkpoint loads with massive size mismatches
+
+If most backbone layers mismatch, the checkpoint architecture differs from the
+requested exporter architecture (for example `resnext50_32x4d` vs `resnet50`).
+Use the correct `--arch`.
+
+Also match `--num-classes` to the trained head shape. For example:
+
+- `fc.weight` shape `[1, 2048]` -> `--num-classes 1`
+- `fc.weight` shape `[2, 2048]` -> `--num-classes 2`
+
+## TorchScript ONNX export fails with `torch.export` errors
+
+ScriptModule exports can fail under the new exporter path. Force legacy export
+mode in custom scripts:
+
+```python
+torch.onnx.export(model, x, out_path, opset_version=17, dynamo=False)
+```
+
+If your scripted model is already a wrapper module, export it directly instead
+of wrapping again for tracing.

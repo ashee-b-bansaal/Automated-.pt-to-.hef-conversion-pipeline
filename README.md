@@ -56,6 +56,19 @@ scripts/benchmark_hefs.sh             benchmark all HEFs on target device
 docs/MODEL_ZOO_MODELS.md              Hailo-8 model inventory and local scanner
 ```
 
+## 0. Path convention (avoid path mistakes)
+
+Prefer one explicit project-root variable and avoid writing outputs to `/...`
+absolute root paths by accident:
+
+```bash
+export PROJ=/path/to/Automated-.pt-to-.hef-conversion-pipeline
+cd "$PROJ"
+```
+
+Use `$PROJ/...` or `~/...` paths in commands. A path like `/model_export_env`
+or `/resnext50_finetuned` usually means the wrong location.
+
 ## 1. Prepare the export environment
 
 ```bash
@@ -80,9 +93,10 @@ https://github.com/hailo-ai/hailo_model_zoo/releases
 Example (pin to v2.18.0):
 
 ```bash
-git clone https://github.com/hailo-ai/hailo_model_zoo.git
-cd hailo_model_zoo
-git checkout v2.18.0
+git clone https://github.com/hailo-ai/hailo_model_zoo.git ~/hailo_model_zoo
+cd ~/hailo_model_zoo
+git checkout v2.18
+python -m pip install -e . --no-build-isolation
 ```
 
 Use the exact Model Zoo tag that matches your installed Hailo Software Suite /
@@ -92,7 +106,13 @@ Check the machine:
 
 ```bash
 source ~/hailo_env/bin/activate
-./hmct doctor   --model-zoo-root ~/Video_streaming/hailo_model_zoo   --calib-dir ~/calibration_images   --test-gpu
+./hmct doctor   --model-zoo-root ~/hailo_model_zoo   --calib-dir "$PROJ/calibration_images"   --test-gpu
+```
+
+If `--test-gpu` fails on a login/shared node, rerun without it:
+
+```bash
+./hmct doctor --model-zoo-root ~/hailo_model_zoo --calib-dir "$PROJ/calibration_images"
 ```
 
 List the classifier architectures available in the separate export environment:
@@ -106,10 +126,10 @@ source ~/model_export_env/bin/activate
 ## 3. See what your installed Model Zoo can compile
 
 ```bash
-./hmct zoo-list --root ~/Video_streaming/hailo_model_zoo
-./hmct zoo-list --root ~/Video_streaming/hailo_model_zoo --pattern yolo
-./hmct zoo-list --root ~/Video_streaming/hailo_model_zoo --pattern resnet
-./hmct zoo-list --root ~/Video_streaming/hailo_model_zoo --pattern vit
+./hmct zoo-list --root ~/hailo_model_zoo
+./hmct zoo-list --root ~/hailo_model_zoo --pattern yolo
+./hmct zoo-list --root ~/hailo_model_zoo --pattern resnet
+./hmct zoo-list --root ~/hailo_model_zoo --pattern vit
 ```
 
 See [`docs/MODEL_ZOO_MODELS.md`](docs/MODEL_ZOO_MODELS.md) for a Hailo-8 public
@@ -156,6 +176,15 @@ This works when the exported graph remains compatible with the Zoo's ResNet-50
 recipe. If it does not, use the direct DFC route and supply parser boundaries or
 an ALLS script.
 
+### Architecture mismatch warning
+
+If `export-classifier` prints many `size mismatch` errors for backbone layers,
+your checkpoint architecture does not match `--arch`. For example,
+`resnext50_32x4d` checkpoints will not load under `--arch resnet50`.
+
+Also ensure `--num-classes` matches the trained head exactly. A checkpoint with
+`fc.weight` shape `[1, 2048]` requires `--num-classes 1`, not `2`.
+
 ## 6. ViT guidance
 
 Hailo-8's public Zoo includes known-good variants such as `vit_tiny`,
@@ -192,6 +221,14 @@ Add `--end-nodes` when automatic parser boundaries are wrong and
 `--model-script custom.alls` when optimization/compiler instructions are
 needed. Direct conversion cannot dynamically make unsupported operators
 supported; inspect the parser/compiler error rather than blindly retrying.
+
+If `compile_direct_dfc.py` fails with `No module named 'hailo_sdk_client'`,
+you are likely in the export environment. Deactivate it and run compile in the
+Hailo environment only.
+
+If compilation fails with `GLIBC_2.29 not found` for `HSim.so`, your host OS is
+too old for that DFC build. Use a newer compile host/container (Ubuntu 20.04+,
+RHEL9-class), or install a Hailo release compatible with your OS libc.
 
 ## 9. Run on Raspberry Pi
 
