@@ -142,7 +142,7 @@ sudo apt install -y graphviz graphviz-dev pkg-config build-essential
 
 ```bash
 # Conda-only path (no sudo)
-conda install -c conda-forge graphviz pygraphviz=1.14 -y
+conda install -c conda-forge graphviz pygraphviz -y
 ```
 
 Install the matching Hailo Model Zoo v2.x checkout from the official releases:
@@ -243,7 +243,41 @@ your checkpoint architecture does not match `--arch`. For example,
 Also ensure `--num-classes` matches the trained head exactly. A checkpoint with
 `fc.weight` shape `[1, 2048]` requires `--num-classes 1`, not `2`.
 
-## 6. ViT guidance
+## 6. Custom YOLOv11 `.pt` example
+
+In the export environment:
+
+```bash
+source ~/model_export_env/bin/activate
+cd "$PROJ"
+
+./scripts/export_yolo_onnx.sh --weights /path/to/yolov11_custom.pt --imgsz 640
+./scripts/check_onnx.py /path/to/yolov11_custom.onnx
+```
+
+In the Hailo compiler environment, use the matching Model Zoo recipe name
+(`yolov11n`, `yolov11s`, `yolov11m`, `yolov11l`, or `yolov11x`) for your model:
+
+```bash
+source ~/hailo_env/bin/activate
+cd "$PROJ"
+
+./hmct zoo-list --root ~/hailo_model_zoo --pattern yolov11
+
+./scripts/compile_zoo_model.sh \
+  --model yolov11s \
+  --onnx /path/to/yolov11_custom.onnx \
+  --classes 3 \
+  --model-zoo-root ~/hailo_model_zoo \
+  --calib-dir "$PROJ/calibration_images" \
+  --hw-arch hailo8 \
+  --output-dir "$PROJ/hailo_outputs/yolov11_custom"
+```
+
+If compile fails with parser/NMS mismatch, inspect the log first and then move
+to the direct DFC path (`compile_direct_dfc.py`) only when needed.
+
+## 7. ViT guidance
 
 Hailo-8's public Zoo includes known-good variants such as `vit_tiny`,
 `vit_small`, `vit_base`, DeiT, Swin, LeViT, and other efficient transformer
@@ -254,7 +288,7 @@ The repository includes an experimental OpenCLIP image-encoder exporter, but an
 ONNX export is not a promise that Hailo-8 can parse, quantize, or map it. Treat
 it as a BYOM feasibility experiment.
 
-## 7. Calibration
+## 8. Calibration
 
 Calibration data estimates activation ranges for quantization. Use unlabeled,
 representative deployment images. Preserve the same resize, crop, channel order,
@@ -268,7 +302,7 @@ For direct DFC:
 ./scripts/prepare_calibration.py   --images ~/dataset/train   --output ~/calib/resnet50_224.npy   --height 224 --width 224 --count 1024 --center-crop
 ```
 
-## 8. Direct DFC conversion
+## 9. Direct DFC conversion
 
 ```bash
 source ~/hailo_env/bin/activate
@@ -288,7 +322,7 @@ If compilation fails with `GLIBC_2.29 not found` for `HSim.so`, your host OS is
 too old for that DFC build. Use a newer compile host/container (Ubuntu 20.04+,
 RHEL9-class), or install a Hailo release compatible with your OS libc.
 
-## 9. Run on Raspberry Pi
+## 10. Run on Raspberry Pi
 
 ```bash
 scp ~/hailo_outputs/resnet50/*.hef pi@raspberrypi.local:~/models/
@@ -301,7 +335,7 @@ hailortcli benchmark ~/models/resnet_v1_50.hef
 For a full inference example, see `scripts/run_classification.py`. Accelerator
 FPS and end-to-end camera latency are different measurements.
 
-## 10. Validate accuracy after quantization
+## 11. Validate accuracy after quantization
 
 A compiled model is not automatically a correct model. Compare at least:
 
