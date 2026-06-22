@@ -114,6 +114,22 @@ Download/install the matching Hailo Software Suite (including Dataflow Compiler
 and HailoRT) from the Hailo Developer Zone:
 https://hailo.ai/developer-zone/
 
+If your release is provided as local wheels, install them first in the Hailo
+environment, then verify imports/CLIs:
+
+```bash
+source ~/hailo_env/bin/activate
+cd "$PROJ"
+python -m pip install ./hailo_dataflow_compiler-3.33.1-py3-none-linux_x86_64.whl
+python -m pip install ./hailort-4.23.0-cp310-cp310-linux_x86_64.whl
+
+# Commands to run after .whl install
+python -m pip show hailo-dataflow-compiler
+python -m pip show hailort
+python -c "import hailo_sdk_client; print('hailo_sdk_client OK')"
+which hailo
+```
+
 Install the matching Hailo Model Zoo v2.x checkout from the official releases:
 https://github.com/hailo-ai/hailo_model_zoo/releases
 
