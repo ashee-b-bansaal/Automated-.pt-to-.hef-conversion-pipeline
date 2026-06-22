@@ -130,6 +130,21 @@ python -c "import hailo_sdk_client; print('hailo_sdk_client OK')"
 which hailo
 ```
 
+If DFC installation fails while building `pygraphviz` with
+`fatal error: graphviz/cgraph.h: No such file or directory`, install Graphviz
+development headers first, then retry:
+
+```bash
+# Ubuntu/Debian (with sudo)
+sudo apt update
+sudo apt install -y graphviz graphviz-dev pkg-config build-essential
+```
+
+```bash
+# Conda-only path (no sudo)
+conda install -c conda-forge graphviz pygraphviz=1.14 -y
+```
+
 Install the matching Hailo Model Zoo v2.x checkout from the official releases:
 https://github.com/hailo-ai/hailo_model_zoo/releases
 
