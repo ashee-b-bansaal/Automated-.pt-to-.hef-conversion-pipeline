@@ -78,6 +78,33 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements-export.txt
 ```
 
+If the machine default Python is newer/older and `python3.10` is missing, use
+one of these Python 3.10 bootstrap paths first:
+
+```bash
+# Option A (HPC/module systems): load a 3.10 module, then create venv
+module spider python
+module load python/3.10
+python3.10 -m venv ~/model_export_env
+```
+
+```bash
+# Option B (no module/no sudo): install Miniforge in user space and create a 3.10 env
+curl -L -o ~/Miniforge3.sh https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+bash ~/Miniforge3.sh -b -p "$HOME/miniforge3"
+source "$HOME/miniforge3/etc/profile.d/conda.sh"
+conda create -y -n model_export_env python=3.10
+conda activate model_export_env
+python -m pip install --upgrade pip
+python -m pip install -r requirements-export.txt
+```
+
+You can also use an explicit Python path directly:
+
+```bash
+/absolute/path/to/python3.10 -m venv ~/model_export_env
+```
+
 Install `ultralytics` only when exporting current YOLO models, or
 `open_clip_torch` only when experimentally exporting OpenCLIP.
 
