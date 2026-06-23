@@ -114,6 +114,26 @@ Download/install the matching Hailo Software Suite (including Dataflow Compiler
 and HailoRT) from the Hailo Developer Zone:
 https://hailo.ai/developer-zone/
 
+For Ubuntu x86_64 manual installation (non-Docker), download:
+
+- `hailort_4.23.0_amd64.deb` (system runtime libs + CLI)
+- matching Python wheel for your env version:
+  - Python 3.10 -> `hailort-4.23.0-cp310-cp310-linux_x86_64.whl`
+  - Python 3.11 -> `hailort-4.23.0-cp311-cp311-linux_x86_64.whl`
+  - Python 3.12 -> `hailort-4.23.0-cp312-cp312-linux_x86_64.whl`
+  - Python 3.13 -> `hailort-4.23.0-cp313-cp313-linux_x86_64.whl`
+
+Download location (requires login):
+https://hailo.ai/developer-zone/documentation/hailo-sw-suite-2025-10-for-hailo-8-8l/?sp_referrer=suite/suite_install.html#docker-installation
+
+Install the `.deb` first:
+
+```bash
+sudo apt install ./hailort_4.23.0_amd64.deb
+```
+
+Then install DFC + Python wheel in the Hailo environment.
+
 If your release is provided as local wheels, install them first in the Hailo
 environment, then verify imports/CLIs:
 
